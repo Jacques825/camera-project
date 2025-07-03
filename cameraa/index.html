@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Camera App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>Fungura Camera yawe</h2>
+
+  <video id="video" width="640" height="480" autoplay></video>
+  <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+  <br>
+  <button onclick="takeSnapshot()">Fata Ifoto</button>
+  <button onclick="downloadImage()"> Download Ifoto</button>
+
+  <h3>Ifoto Wafashe:</h3>
+  <img id="preview" width="300" alt="Ifoto yafashwe" />
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const preview = document.getElementById('preview');
+    const context = canvas.getContext('2d');
+
+    // Fungura camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        alert("Camera ntiyafungutse: " + err);
+      });
+
+    function takeSnapshot() {
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = canvas.toDataURL('image/png');
+      preview.src = imageData;
+
+      // Ohereza kuri PHP
+      fetch('save_image.php', {
+        method: 'POST',
+        body: JSON.stringify({ image: imageData }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.text())
+      .then(msg => {
+        console.log(msg);
+      });
+    }
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.href = preview.src;
+      link.download = 'ifoto_yanjye.png';
+      link.click();
+    }
+  </script>
+</body>
+</html>
